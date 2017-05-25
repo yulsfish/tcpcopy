@@ -31,6 +31,9 @@ tc_message_init(tc_event_loop_t *event_loop, uint32_t ip, uint16_t port)
     len = (socklen_t) sizeof(struct timeval);
     setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, len);
 
+    /*
+     * 创建事件
+    */
     ev = tc_event_create(event_loop->pool, fd, tc_proc_server_msg, NULL);
     if (ev == NULL) {
         return TC_INVALID_SOCK;
@@ -38,6 +41,9 @@ tc_message_init(tc_event_loop_t *event_loop, uint32_t ip, uint16_t port)
 
     clt_settings.ev[fd] = ev;
 
+    /*
+     * 把事件添加到event_loop
+    */
     if (tc_event_add(event_loop, ev, TC_EVENT_READ) == TC_EVENT_ERROR) {
         return TC_INVALID_SOCK;
     }

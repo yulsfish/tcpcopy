@@ -61,11 +61,17 @@ tc_event_add_timer(tc_pool_t *pool, tc_msec_t timer, void *data,
     tc_msec_t         key;
     tc_event_timer_t *ev;
 
+    /*
+     * 构建event, 并插入rbtree
+    */
     ev = (tc_event_timer_t *) tc_palloc(pool, sizeof(tc_event_timer_t));
     if (ev != NULL) {
         ev->pool = pool;
         ev->handler = handler;
         ev->data = data;
+        /*
+         * 注意key
+        */
         key = ((tc_msec_t) tc_current_time_msec) + timer;
         ev->timer.key = key;
 

@@ -2,3 +2,9 @@ Makefile
 cscope.*
 tags
 objs/*
+tcp_copy.ncb
+tcp_copy.sln
+tcp_copy.suo
+tcp_copy.vcproj.user
+tcp_copy.vcproj
+tcp_copy.vcproj.fish-PC.fish.user

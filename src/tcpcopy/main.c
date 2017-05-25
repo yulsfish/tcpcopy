@@ -1083,6 +1083,9 @@ main(int argc, char **argv)
     signal(SIGTERM, tcp_copy_over);
 #endif
 
+    /*
+     * 初始化当前时间
+    */
     tc_time_init();
 
     if (read_args(argc, argv) == -1) {
@@ -1093,6 +1096,9 @@ main(int argc, char **argv)
         return -1;
     }
 
+    /*
+     * 创建内存池
+    */
     clt_settings.pool = tc_create_pool(TC_DEFAULT_POOL_SIZE, 0, 0);
 
     if (clt_settings.pool == NULL) {
@@ -1114,14 +1120,23 @@ main(int argc, char **argv)
     }
 #endif
 
+    /*
+     * 初始化定时器
+    */
     tc_event_timer_init();
 
+    /*
+     * 初始化event_loop
+    */
     ret = tc_event_loop_init(&event_loop, MAX_FD_NUM);
     if (ret == TC_EVENT_ERROR) {
         tc_log_info(LOG_ERR, 0, "event loop init failed");
         is_continue = 0;
     } 
 
+    /*
+     * 初始化tcpcopy, 注册loop关注的事件
+    */
     if (is_continue) {
         ret = tcp_copy_init(&event_loop);
         if (ret == TC_ERR) {
@@ -1129,6 +1144,9 @@ main(int argc, char **argv)
         }   
     }
 
+    /*
+     * 开始 event_loop
+    */
     if (is_continue) {
         /* run now */
         tc_event_proc_cycle(&event_loop);

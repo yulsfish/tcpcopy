@@ -12,9 +12,9 @@ typedef struct hash_node_s{
 
 typedef struct hash_table_s{
     tc_pool_t  *pool;  
-    link_list **lists;
+    link_list **lists;      /*session链表数组*/
     uint32_t    total;
-    uint32_t    size;
+    uint32_t    size;       /*seession最大个数*/
 }hash_table_t, hash_table;
 
 hash_table *hash_create(tc_pool_t *pool, uint32_t size);

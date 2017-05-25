@@ -24,11 +24,17 @@ tc_time_update()
     struct tm       tm;
     struct timeval  tv;
 
+    /*
+     * 获取系统当前时间
+    */
     status = gettimeofday(&tv, NULL);
     if (status >= 0) {
         sec = tv.tv_sec;
         msec = tv.tv_usec / 1000;
 
+        /*
+         * 更新
+        */
         tc_current_time_sec = sec;
         tc_current_time_msec = sec * 1000 + msec;
 

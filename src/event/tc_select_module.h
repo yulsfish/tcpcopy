@@ -6,9 +6,9 @@
 typedef struct tc_select_multiplex_io_s   tc_select_multiplex_io_t;
 
 struct tc_select_multiplex_io_s {
-    int             max_fd;
-    int             last;
-    tc_event_t    **evs;
+    int             max_fd;           /*此IO对象关注的最大fd*/
+    int             last;             /*此IO对象关注的event个数*/
+    tc_event_t    **evs;              /*此IO对象关注的event列表*/         
     fd_set          r_set;
     fd_set          w_set;
 };

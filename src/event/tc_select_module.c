@@ -10,6 +10,9 @@ int tc_select_create(tc_event_loop_t *loop)
         return TC_EVENT_ERROR;
     }
 
+    /*
+     * 创建 IO 对象
+    */
     io = tc_palloc(loop->pool, sizeof(tc_select_multiplex_io_t));
     if (io == NULL) {
         return TC_EVENT_ERROR;
@@ -58,11 +61,17 @@ int tc_select_add_event(tc_event_loop_t *loop, tc_event_t *ev, int events)
 
     io = loop->io;
 
+    /*
+     * io event个数超上限
+    */
     if (io->last >= loop->size) {
         /* too many */
         return TC_EVENT_ERROR;
     }
 
+    /*
+     * fd_set
+    */
     if (events == TC_EVENT_READ && ev->read_handler
             && ev->write_handler == NULL)
     {
@@ -75,11 +84,18 @@ int tc_select_add_event(tc_event_loop_t *loop, tc_event_t *ev, int events)
         return TC_EVENT_ERROR;
     }
 
+    /*
+     * 更新最大的fd
+    */
     if (io->max_fd != -1 && ev->fd > io->max_fd) {
         io->max_fd = ev->fd;
     }
 
     ev->index = io->last;
+    /*
+     * 复制event到event 数组，
+     * 递增event数目
+    */
     io->evs[io->last++] = ev;
 
     return TC_EVENT_OK;
@@ -104,6 +120,9 @@ int tc_select_del_event(tc_event_loop_t *loop, tc_event_t *ev, int events)
         return TC_EVENT_ERROR;
     }
 
+    /*
+     * 这样就能删除 ?
+    */
     if (ev->index < --(io->last)) {
         last_ev = io->evs[io->last];
         io->evs[ev->index] = last_ev;
@@ -112,6 +131,10 @@ int tc_select_del_event(tc_event_loop_t *loop, tc_event_t *ev, int events)
 
     ev->index = -1;
 
+    /*
+     * 如果删除的就是最大fd对应的event
+     * 则删除后max_fd是不知道的
+    */
     if (io->max_fd == ev->fd) {
         io->max_fd = -1;
     }
@@ -159,12 +182,18 @@ int tc_select_polling(tc_event_loop_t *loop, long to)
     }
 
     for (i = 0; i < io->last; i++) {
+        /*
+         * 这里有个清除操作
+        */
         /* clear the active events, and reset */
         evs[i]->events = TC_EVENT_NONE;
 
         if (evs[i]->read_handler) {
             if (FD_ISSET(evs[i]->fd, &cur_read_set)) {
                 evs[i]->events |= TC_EVENT_READ;
+                /*
+                 * 事件加入激活事件链表
+                */
                 tc_event_push_active_event(loop->active_events, evs[i]);
             }
         } else {

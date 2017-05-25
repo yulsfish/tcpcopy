@@ -41,12 +41,13 @@ typedef struct {
     ev_event_poll_pt    poll;
 } tc_event_actions_t;
 
+/*event 结构*/
 struct tc_event_s {
-    int                  fd;
-    int                  events;
-    int                  reg_evs;
-    int                  index;
-    tc_event_loop_t     *loop;
+    int                  fd;                 /*与该event 相应的fd*/
+    int                  events;             /*被激活的事件 位或*/
+    int                  reg_evs;            /*该fd上注册的事件类型,可读或可写，位或*/
+    int                  index;              /*该event序号*/
+    tc_event_loop_t     *loop;               /*event所属的event_loop*/
     tc_event_handler_pt  read_handler;
     tc_event_handler_pt  write_handler;
     tc_event_t          *next;
@@ -64,12 +65,13 @@ struct tc_event_timer_s {
     tc_event_timer_handler_pt  handler;
 };
 
+/*event loop 结构*/
 struct tc_event_loop_s {
-    int                 size;
-    void               *io;
-    tc_pool_t          *pool;
-    tc_event_t         *active_events;
-    tc_event_actions_t *actions;
+    int                 size;                  /*监听的event最大个数*/
+    void               *io;                    /*IO复用对象 select / epoll */
+    tc_pool_t          *pool;                  /*每个event_loop有自己的内存池*/
+    tc_event_t         *active_events;         /*被激活的event链表*/
+    tc_event_actions_t *actions;               /*event loop 操作, 针对select / epoll 的操作集*/
 };
 
 

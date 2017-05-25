@@ -57,11 +57,17 @@ tc_event_expire_timers(void)
             return;
         }
 
+        /*
+         * 找到key最小的结点
+        */
         node = tc_rbtree_min(root, sentinel);
 
         /* node->key <= tc_current_time */
 
         if ((tc_msec_int_t) (node->key - tc_current_time_msec) <= 0) {
+            /*
+             * 时间已经到了或超了, 则挨个执行
+            */
             ev = (tc_event_timer_t *) ((char *) node -
                     offsetof(tc_event_timer_t, timer));
 
@@ -71,7 +77,10 @@ tc_event_expire_timers(void)
             tc_rbtree_delete(&tc_event_timer_rbtree, &ev->timer);
 
             ev->timer_set = 0;
-
+            
+            /*
+             * 执行定时回调函数
+            */
             ev->handler(ev);
 
             continue;

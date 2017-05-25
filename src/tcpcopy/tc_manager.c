@@ -190,6 +190,9 @@ connect_to_server(tc_event_loop_t *ev_lp)
         conns->remained_num = 0;
 
         for (j = 0; j < clt_settings.par_conns; j++) {
+            /*
+             * 连接服务器并注册读事件
+            */
             fd = tc_message_init(ev_lp, target_ip, target_port);
             if (fd == TC_INVALID_SOCK) {
                 return TC_ERR;
@@ -226,6 +229,9 @@ restore_work(tc_event_timer_t *evt)
 int
 tcp_copy_init(tc_event_loop_t *ev_lp)
 {
+    /*
+     * 注册超时事件
+    */
     tc_event_add_timer(ev_lp->pool, 60000, NULL, check_resource_usage);
     tc_event_add_timer(ev_lp->pool, OUTPUT_INTERVAL, NULL, tc_interval_disp);
 
@@ -233,10 +239,16 @@ tcp_copy_init(tc_event_loop_t *ev_lp)
         tc_event_add_timer(ev_lp->pool, RETRY_INTERVAL, NULL, restore_work);
     }
 
+    /*
+     * 初始化 seesion hash
+    */
     if  (tc_init_sess_table() == TC_ERR) {
         return TC_ERR;
     }
 
+    /*
+     * 连接服务器
+    */
     if (connect_to_server(ev_lp) == TC_ERR) {
         return TC_ERR;
     }
