@@ -240,7 +240,7 @@ tcp_copy_init(tc_event_loop_t *ev_lp)
     }
 
     /*
-     * 初始化 seesion hash
+     * 初始化seesion hash
     */
     if  (tc_init_sess_table() == TC_ERR) {
         return TC_ERR;
@@ -258,6 +258,10 @@ tcp_copy_init(tc_event_loop_t *ev_lp)
         return TC_ERR;
     }
 #else
+    /*
+     * 从raw socket抓取client request
+     * 从raw socket发送请求数据到测试机
+    */
     if (tc_packets_init(ev_lp) == TC_ERR) {
         return TC_ERR;
     }

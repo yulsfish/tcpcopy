@@ -72,6 +72,9 @@ tc_packets_init(tc_event_loop_t *event_loop)
 #endif
 
 #if (!TC_PCAP_SND)
+    /*
+     * 该raw socket 用来发送请求给测试机
+    */
     /* init the raw socket to send packets */
     if ((fd = tc_raw_socket_out_init()) == TC_INVALID_SOCK) {
         return TC_ERR;
@@ -132,6 +135,10 @@ tc_packets_init(tc_event_loop_t *event_loop)
     }
 
 #else
+    /*
+     * 该raw socket 用来在ip层抓取client的请求数据包
+     * 抓取后就可以从tc_raw_socket_out发给测试机
+    */
     /* init the raw socket to recv packets */
     if ((fd = tc_raw_socket_in_init(COPY_FROM_IP_LAYER)) == TC_INVALID_SOCK) {
         return TC_ERR;
@@ -239,6 +246,9 @@ proc_raw_pack(tc_event_t *rev)
             return TC_ERR;
         }
 
+        /*
+         * 处理抓取的ip层数据包
+        */
         if (dispose_packet(packet, recv_len, NULL) == TC_ERR) {
             return TC_ERR;
         }
@@ -293,7 +303,6 @@ dispose_packet(unsigned char *packet, int ip_rcv_len, int *p_valid_flag)
     }
 
     ip = (tc_iph_t *) packet;
-
     if (tc_check_ingress_pack_needed(ip)) {
 
         replica_num = clt_settings.replica_num;
@@ -366,6 +375,9 @@ dispose_packet(unsigned char *packet, int ip_rcv_len, int *p_valid_flag)
         packet_valid = false;
     }
 
+    /*
+     * 只处理关心的数据包
+    */
     ip   = (tc_iph_t *) packet;
     if (tc_check_ingress_pack_needed(ip)) {
 
@@ -374,13 +386,22 @@ dispose_packet(unsigned char *packet, int ip_rcv_len, int *p_valid_flag)
         tcp  = (tc_tcph_t *) ((char *) ip + size_ip);
 
         if (ip_rcv_len <= clt_settings.mtu) {
+            /*
+             * 抓取的请求长度 <= MTU
+            */
             packet_valid = tc_proc_ingress(ip, tcp);
             if (replica_num > 1) {
+                /*
+                 * 复制到其他测试机
+                */
                 replicate_packs(ip, tcp, replica_num);
             }
 
         } else {
 
+            /*
+             * 分片处理
+            */
             tot_len     = ntohs(ip -> tot_len);
             if (tot_len != ip_rcv_len) {
                 tc_log_info(LOG_WARN, 0, "packet len:%u, recv len:%u",

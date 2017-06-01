@@ -12,8 +12,15 @@ daemonize(void)
         case 0:
             break;
         default:
+            /*
+             * 父进程退出
+            */
             _exit(EXIT_SUCCESS);
     }
+
+    /*
+     * child process变为leader
+    */
     if (setsid() == -1) {
         return (-1);
     }

@@ -6,10 +6,10 @@
 
 
 struct tc_array_s{
-    void        *elts;
-    unsigned int nelts;
-    size_t       size;
-    unsigned int nalloc;
+    void        *elts;             /*数组*/
+    unsigned int nelts;            /*已经分配出去的数组个数*/
+    size_t       size;             /*数组元素大小*/
+    unsigned int nalloc;           /*数组容量*/
     tc_pool_t   *pool;
 };
 

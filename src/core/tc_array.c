@@ -33,6 +33,10 @@ tc_array_destroy(tc_array_t *a)
     if ((u_char *) a + sizeof(tc_array_t) == p->d.last) {
         p->d.last = (u_char *) a;
     }
+
+    /*
+     * 这里又有内存可能没有释放 bug
+    */
 }
 
 
@@ -51,6 +55,9 @@ tc_array_push(tc_array_t *a)
 
         p = a->pool;
 
+        /*
+         * 数组的元素要连续存放
+        */
         if ((u_char *) a->elts + size == p->d.last
             && p->d.last + a->size <= p->d.end)
         {
@@ -73,6 +80,10 @@ tc_array_push(tc_array_t *a)
             memcpy(new, a->elts, size);
             a->elts = new;
             a->nalloc *= 2;
+
+            /*
+             * 这里没有释放之前的空间 bug
+            */
         }
     }
 

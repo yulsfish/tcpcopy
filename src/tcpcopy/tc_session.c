@@ -2066,6 +2066,9 @@ get_tf_ip(uint16_t key)
 {
     uint16_t cnt;
 
+    /*
+     * 实现挺巧妙
+    */
     if (clt_settings.ip_tf[key] == 0) {
         cnt = clt_settings.ip_tf_cnt;
         clt_settings.ip_tf[key] = clt_settings.clt_tf_ip[cnt];
@@ -2092,22 +2095,42 @@ tc_check_ingress_pack_needed(tc_iph_t *ip)
 
     tc_stat.captured_cnt++;
 
+    /*
+     * 只处理tcp请求
+    */
     if (ip->protocol != IPPROTO_TCP) {
         return is_needed;
     }
 
+    /*
+     * ip header 大小
+     * ip->ihl 表示占用多少个四字节
+    */
     size_ip   = ip->ihl << 2;
     if (size_ip < IPH_MIN_LEN) {
         tc_log_info(LOG_INFO, 0, "Invalid IP header length: %d", size_ip);
         return is_needed;
     }
 
+    /*
+     * ip报文分片
+    */
     frag_off = ntohs(ip->frag_off);
     if (frag_off != IP_DF) {
+        /*
+         * IP_DF 
+        */
         tc_stat.frag_cnt++;
     }
 
+    /*
+     * IP头 + 数据 长度
+    */
     tot_len  = ntohs(ip->tot_len);
+
+    /*
+     * tcp
+    */
     tcp      = (tc_tcph_t *) ((char *) ip + size_ip);
     size_tcp = tcp->doff << 2;
     if (size_tcp < TCPH_MIN_LEN) {
@@ -2121,18 +2144,31 @@ tc_check_ingress_pack_needed(tc_iph_t *ip)
                 tcp->dest, CHECK_DEST)) 
     {
         if (!clt_settings.target_localhost) {
+            /*
+             * 转发的目的主机不是本机
+            */
             if (ip->saddr == LOCALHOST) {
                 if (clt_settings.localhost_tf_ip != 0) {
                     ip->saddr = clt_settings.localhost_tf_ip;
                 }
             }
         } else {
+            /*
+             * 转发的目的ip是本机
+            */
             if (ip->saddr != LOCALHOST) {
+                /*
+                 * 包的源ip不是本机
+                */
                 tc_log_info(LOG_WARN, 0, "not localhost source ip address");
                 return is_needed;
             }
         }
 
+        /*
+         * clt_settings.clt_tf_ip_num > 0 表示
+         * 转发包时，需要修改client ip
+        */
         if (clt_settings.clt_tf_ip_num > 0) {
             tf_key = get_ip_key(ip->saddr);
             ip->saddr = get_tf_ip(tf_key);
@@ -2141,6 +2177,9 @@ tc_check_ingress_pack_needed(tc_iph_t *ip)
         hlen = size_tcp + size_ip;
         if (tot_len >= hlen) {
 
+            /*
+             * 不明白 ？？
+            */
             if (clt_settings.gradully && clt_settings.percentage < 100) {
                 if (tc_stat.start_pt) {
                     clt_settings.percentage = tc_time() - tc_stat.start_pt + 1;
@@ -2160,11 +2199,21 @@ tc_check_ingress_pack_needed(tc_iph_t *ip)
                     return is_needed;
                 }
             }
+
             if (!tcp->syn) {
+                /*
+                 * 非SYN包
+                */
                 cont_len  = tot_len - hlen;
                 if (cont_len > 0) {
+                    /*
+                     * 携带数据的包
+                    */
                     tc_stat.clt_cont_cnt++;
                 } else {
+                    /*
+                     * RST / FIN 包
+                    */
                     sess_key =  get_key(ip->saddr, tcp->source);
                     s = hash_find(sess_table, sess_key);
                     if (s) {
@@ -2360,6 +2409,10 @@ proc_clt_pack_from_buffer(tc_sess_t *s)
 }
 
 
+/*
+ * 处理抓到的包
+ * 其实就是发出去,发给测试机
+*/
 bool
 tc_proc_ingress(tc_iph_t *ip, tc_tcph_t *tcp)
 {

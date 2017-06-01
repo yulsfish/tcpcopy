@@ -751,6 +751,10 @@ retrieve_clt_tf_ips()
             break;
         }   
 
+        /*
+         * -c 选项后的ip最后一个字节是x，
+         * 则整个网段的255个IP都可能被用来当做包转发时的 client ip
+        */
         if (p[len - 1] == 'x') {
             strncpy(tmp_ip, p, len -1);
             q = tmp_ip + len - 1;
@@ -1020,9 +1024,13 @@ set_details()
 
     /* daemonize */
     if (clt_settings.do_daemonize) {
+        /*
+         * 终端忽略hangup信号
+        */
         if (sigignore(SIGHUP) == -1) {
             tc_log_info(LOG_ERR, errno, "Failed to ignore SIGHUP");
         }
+
         if (daemonize() == -1) {
             fprintf(stderr, "failed to daemonize() in order to daemonize\n");
             return -1;

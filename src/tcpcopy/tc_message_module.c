@@ -33,6 +33,7 @@ tc_message_init(tc_event_loop_t *event_loop, uint32_t ip, uint16_t port)
 
     /*
      * 创建事件
+     * 抓取测试机返回的包头
     */
     ev = tc_event_create(event_loop->pool, fd, tc_proc_server_msg, NULL);
     if (ev == NULL) {

@@ -16,8 +16,8 @@ typedef struct {
 
 
 typedef struct {
-    int              num;
-    transfer_map_t **map;
+    int              num;     /*同一个请求包转发给num个测试机*/
+    transfer_map_t **map;     /*转发信息*/
 } transfer_maps_t;
 
 typedef struct real_ip_addr_s {
@@ -45,6 +45,11 @@ get_test_pair(transfer_maps_t *tf, uint32_t ip, uint16_t port)
     return NULL;
 }
 
+/*
+ * tf: 请求转发信息，包含源和目的 ip port
+ * ip: 请求包目的ip
+ * port： 请求包目的port
+*/
 static inline int
 check_pack_src(transfer_maps_t *tf, uint32_t ip, uint16_t port, int src_flag)
 {
@@ -59,9 +64,15 @@ check_pack_src(transfer_maps_t *tf, uint32_t ip, uint16_t port, int src_flag)
         pair = map[i];
         if (src_flag == CHECK_DEST) {
             if (ip == pair->online_ip && port == pair->online_port) {
+                /*
+                 * 收到的包的目的ip/port 就是tcpcopy所在的机器
+                */
                 ret = TC_CLT;
                 break;
             } else if (0 == pair->online_ip && port == pair->online_port) {
+                /*
+                 * 
+                */
                 ret = TC_CLT;
                 break;
             }
